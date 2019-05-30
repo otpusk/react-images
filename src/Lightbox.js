@@ -11,6 +11,7 @@ import Header from './components/Header';
 import PaginatedThumbnails from './components/PaginatedThumbnails';
 import Portal from './components/Portal';
 import DefaultSpinner from './components/Spinner';
+import Video from './components/Video';
 
 import bindFunctions from './utils/bindFunctions';
 import canUseDom from './utils/canUseDom';
@@ -256,35 +257,38 @@ class Lightbox extends Component {
 
 		if (!images || !images.length) return null;
 
-		const image = images[currentImage];
-		const sourceSet = normalizeSourceSet(image);
+		const object = images[currentImage];
+		const sourceSet = normalizeSourceSet(object);
 		const sizes = sourceSet ? '100vw' : null;
 
 		const thumbnailsSize = showThumbnails ? this.theme.thumbnail.size : 0;
 		const heightOffset = `${this.theme.header.height + this.theme.footer.height + thumbnailsSize
 			+ (this.theme.container.gutter.vertical)}px`;
 
-		return (
-			<figure className={css(this.classes.figure)}>
-				{/*
+		switch (object.type) {
+			case 'video':
+				return <Video id={object.id} className={css(this.classes.figure)} />;
+			default:
+				return (<figure className={css(this.classes.figure)}>
+					{/*
 					Re-implement when react warning "unknown props"
 					https://fb.me/react-unknown-prop is resolved
 					<Swipeable onSwipedLeft={this.gotoNext} onSwipedRight={this.gotoPrev} />
 				*/}
-				<img
-					className={css(this.classes.image, imageLoaded && this.classes.imageLoaded)}
-					onClick={onClickImage}
-					sizes={sizes}
-					alt={image.alt}
-					src={image.src}
-					srcSet={sourceSet}
-					style={{
-						cursor: onClickImage ? 'pointer' : 'auto',
-						maxHeight: `calc(100vh - ${heightOffset})`,
-					}}
-				/>
-			</figure>
-		);
+					<img
+						className={css(this.classes.image, imageLoaded && this.classes.imageLoaded)}
+						onClick={onClickImage}
+						sizes={sizes}
+						alt={object.alt}
+						src={object.src}
+						srcSet={sourceSet}
+						style={{
+							cursor: onClickImage ? 'pointer' : 'auto',
+							maxHeight: `calc(100vh - ${heightOffset})`,
+						}}
+					/>
+				</figure>);
+		}
 	}
 	renderThumbnails () {
 		const { images, currentImage, onClickThumbnail, showThumbnails, thumbnailOffset } = this.props;
@@ -374,7 +378,8 @@ Lightbox.propTypes = {
 	imageCountSeparator: PropTypes.string,
 	images: PropTypes.arrayOf(
 		PropTypes.shape({
-			src: PropTypes.string.isRequired,
+			type: PropTypes.string,
+			src: PropTypes.string,
 			srcSet: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
 			caption: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
 			thumbnail: PropTypes.string,

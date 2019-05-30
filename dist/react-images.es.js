@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { Children, Component } from 'react';
+import React, { Children, Component, createRef } from 'react';
 import { StyleSheet, css } from 'aphrodite';
 import ScrollLock from 'react-scrolllock';
 import { StyleSheet as StyleSheet$1, css as css$1 } from 'aphrodite/no-important';
@@ -974,6 +974,159 @@ var styles = function styles(_ref) {
 	};
 };
 
+// Core
+var YOUTUBE_API = 'https://www.youtube.com/iframe_api';
+var YOUTUBE_API_CONSUMERS = [];
+var STYLES = {
+	FIGURE: {
+		width: '100vw',
+		maxWidth: '1024px',
+		position: 'relative',
+		overflow: 'hidden',
+		paddingTop: '56.25%'
+	},
+	IFRAME: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		width: '100%',
+		height: '100%',
+		border: 0
+	}
+};
+
+window.onYouTubeIframeAPIReady = function () {
+	var _iteratorNormalCompletion = true;
+	var _didIteratorError = false;
+	var _iteratorError = undefined;
+
+	try {
+		for (var _iterator = YOUTUBE_API_CONSUMERS[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+			var consumer = _step.value;
+
+			consumer(window.YT);
+		}
+	} catch (err) {
+		_didIteratorError = true;
+		_iteratorError = err;
+	} finally {
+		try {
+			if (!_iteratorNormalCompletion && _iterator.return) {
+				_iterator.return();
+			}
+		} finally {
+			if (_didIteratorError) {
+				throw _iteratorError;
+			}
+		}
+	}
+};
+
+var Video = function (_Component) {
+	inherits(Video, _Component);
+
+	function Video(props) {
+		classCallCheck(this, Video);
+
+		var _this = possibleConstructorReturn(this, (Video.__proto__ || Object.getPrototypeOf(Video)).call(this, props));
+
+		var ready = Boolean(window.YT);
+
+		_this.state = { ready: ready, api: window.YT };
+		_this.node = createRef();
+		_this.player = null;
+
+		if (!ready) {
+			if (YOUTUBE_API_CONSUMERS.length === 0) {
+				var script = document.createElement('script');
+				script.setAttribute('src', YOUTUBE_API);
+				document.head.appendChild(script);
+			}
+
+			YOUTUBE_API_CONSUMERS.push(function (YT) {
+				return _this.setState({
+					ready: true,
+					api: YT
+				});
+			});
+		}
+
+		_this.createPlayer = _this.createPlayer.bind(_this);
+		_this.changeVideo = _this.changeVideo.bind(_this);
+		return _this;
+	}
+
+	createClass(Video, [{
+		key: 'componentDidUpdate',
+		value: function componentDidUpdate(_ref) {
+			var prevId = _ref.id;
+			var changeVideo = this.changeVideo,
+			    createPlayer = this.createPlayer;
+			var ready = this.state.ready;
+			var id = this.props.id;
+
+			var initialized = !!this.player;
+			var videoChanged = prevId !== id;
+
+			ready && !initialized && createPlayer();
+			ready && initialized && videoChanged && changeVideo(id);
+		}
+	}, {
+		key: 'componentWillUnmount',
+		value: function componentWillUnmount() {
+			this.player && this.player.destroy();
+		}
+	}, {
+		key: 'createPlayer',
+		value: function createPlayer() {
+			var _this2 = this;
+
+			var id = this.props.id;
+
+
+			this.player = new window.YT.Player(this.node.current, {
+				videoId: id,
+				playerVars: {
+					controls: 1,
+					modestbranding: 1,
+					showinfo: 0,
+					disablekb: 1,
+					rel: 0
+				},
+				events: {
+					onReady: function onReady() {
+						_this2.player.playVideo();
+						_this2.player.mute();
+					}
+				}
+			});
+		}
+	}, {
+		key: 'changeVideo',
+		value: function changeVideo(videoId) {
+			'loadVideoById' in this.player && this.player.loadVideoById(videoId);
+		}
+	}, {
+		key: 'render',
+		value: function render$$1() {
+			var ready = this.state.ready;
+			var className = this.props.className;
+
+
+			if (!ready) {
+				return null;
+			}
+
+			return React.createElement(
+				'figure',
+				{ className: className, style: STYLES.FIGURE },
+				React.createElement('div', { ref: this.node, style: STYLES.IFRAME })
+			);
+		}
+	}]);
+	return Video;
+}(Component);
+
 /**
 	Bind multiple component methods:
 
@@ -1272,29 +1425,34 @@ var Lightbox = function (_Component) {
 
 			if (!images || !images.length) return null;
 
-			var image = images[currentImage];
-			var sourceSet = normalizeSourceSet(image);
+			var object = images[currentImage];
+			var sourceSet = normalizeSourceSet(object);
 			var sizes = sourceSet ? '100vw' : null;
 
 			var thumbnailsSize = showThumbnails ? this.theme.thumbnail.size : 0;
 			var heightOffset = this.theme.header.height + this.theme.footer.height + thumbnailsSize + this.theme.container.gutter.vertical + 'px';
 
-			return React.createElement(
-				'figure',
-				{ className: css(this.classes.figure) },
-				React.createElement('img', {
-					className: css(this.classes.image, imageLoaded && this.classes.imageLoaded),
-					onClick: onClickImage,
-					sizes: sizes,
-					alt: image.alt,
-					src: image.src,
-					srcSet: sourceSet,
-					style: {
-						cursor: onClickImage ? 'pointer' : 'auto',
-						maxHeight: 'calc(100vh - ' + heightOffset + ')'
-					}
-				})
-			);
+			switch (object.type) {
+				case 'video':
+					return React.createElement(Video, { id: object.id, className: css(this.classes.figure) });
+				default:
+					return React.createElement(
+						'figure',
+						{ className: css(this.classes.figure) },
+						React.createElement('img', {
+							className: css(this.classes.image, imageLoaded && this.classes.imageLoaded),
+							onClick: onClickImage,
+							sizes: sizes,
+							alt: object.alt,
+							src: object.src,
+							srcSet: sourceSet,
+							style: {
+								cursor: onClickImage ? 'pointer' : 'auto',
+								maxHeight: 'calc(100vh - ' + heightOffset + ')'
+							}
+						})
+					);
+			}
 		}
 	}, {
 		key: 'renderThumbnails',
@@ -1394,7 +1552,8 @@ Lightbox.propTypes = {
 	enableKeyboardInput: PropTypes.bool,
 	imageCountSeparator: PropTypes.string,
 	images: PropTypes.arrayOf(PropTypes.shape({
-		src: PropTypes.string.isRequired,
+		type: PropTypes.string,
+		src: PropTypes.string,
 		srcSet: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
 		caption: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
 		thumbnail: PropTypes.string
