@@ -21,11 +21,17 @@ const STYLES = {
 	},
 };
 
-window.onYouTubeIframeAPIReady = function () {
-	for (const consumer of YOUTUBE_API_CONSUMERS) {
-		consumer(window.YT);
-	}
-};
+function initYoutubeApi () {
+	const script = document.createElement('script');
+	script.setAttribute('src', YOUTUBE_API);
+	document.head.appendChild(script);
+
+	window.onYouTubeIframeAPIReady = function () {
+		for (const consumer of YOUTUBE_API_CONSUMERS) {
+			consumer(window.YT);
+		}
+	};
+}
 
 export default class Video extends Component {
 	constructor (props) {
@@ -38,12 +44,7 @@ export default class Video extends Component {
 		this.player = null;
 
 		if (!ready) {
-			if (YOUTUBE_API_CONSUMERS.length === 0) {
-				const script = document.createElement('script');
-				script.setAttribute('src', YOUTUBE_API);
-				document.head.appendChild(script);
-			}
-
+			YOUTUBE_API_CONSUMERS.length === 0 && initYoutubeApi();
 			YOUTUBE_API_CONSUMERS.push((YT) => this.setState({
 				ready: true,
 				api: YT,
