@@ -267,7 +267,7 @@ class Lightbox extends Component {
 
 		switch (object.type) {
 			case 'video':
-				return <Video id={object.id} className={css(this.classes.figure)} />;
+				return <Video id={object.id} provider={object.provider} className={css(this.classes.figure)} />;
 			default:
 				return (<figure className={css(this.classes.figure)}>
 					{/*

@@ -974,9 +974,231 @@ var styles = function styles(_ref) {
 	};
 };
 
+var AbstractPlayer = function () {
+    function AbstractPlayer(container) {
+        classCallCheck(this, AbstractPlayer);
+
+        this.container = container;
+        this.player = null;
+
+        this.initialize = this.initialize.bind(this);
+        this.play = this.play.bind(this);
+        this.isReady = this.isReady.bind(this);
+        this.stop = this.stop.bind(this);
+        this.destroy = this.destroy.bind(this);
+    }
+
+    createClass(AbstractPlayer, [{
+        key: "initialize",
+        value: function initialize() {}
+    }, {
+        key: "isReady",
+        value: function isReady() {}
+    }, {
+        key: "play",
+        value: function play() {}
+    }, {
+        key: "stop",
+        value: function stop() {}
+    }, {
+        key: "destroy",
+        value: function destroy() {}
+    }]);
+    return AbstractPlayer;
+}();
+
+var YoutubePlayer = function (_AbstractPlayer) {
+    inherits(YoutubePlayer, _AbstractPlayer);
+
+    function YoutubePlayer(container) {
+        classCallCheck(this, YoutubePlayer);
+
+        var _this = possibleConstructorReturn(this, (YoutubePlayer.__proto__ || Object.getPrototypeOf(YoutubePlayer)).call(this, container));
+
+        if (!YoutubePlayer.api && typeof window.YT !== 'undefined') {
+            YoutubePlayer.api = window.YT;
+        }
+        return _this;
+    }
+
+    createClass(YoutubePlayer, [{
+        key: 'initialize',
+        value: function initialize() {
+            return new Promise(function (resolve) {
+                if (YoutubePlayer.api) {
+                    resolve();
+                }
+
+                if (YoutubePlayer.consumers.length === 0) {
+                    var script = document.createElement('script');
+                    script.setAttribute('src', 'https://www.youtube.com/iframe_api');
+                    document.head.appendChild(script);
+
+                    window.onYouTubeIframeAPIReady = function () {
+                        YoutubePlayer.api = window.YT;
+                        var _iteratorNormalCompletion = true;
+                        var _didIteratorError = false;
+                        var _iteratorError = undefined;
+
+                        try {
+                            for (var _iterator = YoutubePlayer.consumers[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                var consume = _step.value;
+
+                                consume();
+                            }
+                        } catch (err) {
+                            _didIteratorError = true;
+                            _iteratorError = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion && _iterator.return) {
+                                    _iterator.return();
+                                }
+                            } finally {
+                                if (_didIteratorError) {
+                                    throw _iteratorError;
+                                }
+                            }
+                        }
+                    };
+                }
+
+                YoutubePlayer.consumers.push(resolve);
+            });
+        }
+    }, {
+        key: 'play',
+        value: function play(id) {
+            var _this2 = this;
+
+            this.initialize().then(function () {
+                if (_this2.player) {
+                    _this2.player.loadVideoById(id);
+
+                    return 0;
+                }
+
+                _this2.player = new YoutubePlayer.api.Player(_this2.container, {
+                    videoId: id,
+                    playerVars: {
+                        controls: 1,
+                        modestbranding: 1,
+                        showinfo: 0,
+                        disablekb: 1,
+                        rel: 0
+                    },
+                    events: {
+                        onReady: function onReady() {
+                            _this2.player.playVideo();
+                            _this2.player.mute();
+                        }
+                    }
+                });
+            });
+        }
+    }, {
+        key: 'destroy',
+        value: function destroy() {
+            if (this.player) {
+                this.player.destroy();
+            }
+        }
+    }]);
+    return YoutubePlayer;
+}(AbstractPlayer);
+
+YoutubePlayer.api = null;
+YoutubePlayer.consumers = [];
+
+var VimeoPlayer = function (_AbstractPlayer) {
+    inherits(VimeoPlayer, _AbstractPlayer);
+
+    function VimeoPlayer(container) {
+        classCallCheck(this, VimeoPlayer);
+
+        var _this = possibleConstructorReturn(this, (VimeoPlayer.__proto__ || Object.getPrototypeOf(VimeoPlayer)).call(this, container));
+
+        if (!VimeoPlayer.api && typeof window.Vimeo !== 'undefined') {
+            VimeoPlayer.api = window.Vimeo;
+        }
+        return _this;
+    }
+
+    createClass(VimeoPlayer, [{
+        key: 'initialize',
+        value: function initialize() {
+            return new Promise(function (resolve) {
+                if (VimeoPlayer.api) {
+                    resolve();
+                }
+
+                if (VimeoPlayer.consumers.length === 0) {
+                    var script = document.createElement('script');
+                    script.setAttribute('src', 'https://player.vimeo.com/api/player.js');
+                    script.onload = function () {
+                        if (window.Vimeo) {
+                            VimeoPlayer.api = window.Vimeo;
+                            var _iteratorNormalCompletion = true;
+                            var _didIteratorError = false;
+                            var _iteratorError = undefined;
+
+                            try {
+                                for (var _iterator = VimeoPlayer.consumers[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                    var consume = _step.value;
+
+                                    consume();
+                                }
+                            } catch (err) {
+                                _didIteratorError = true;
+                                _iteratorError = err;
+                            } finally {
+                                try {
+                                    if (!_iteratorNormalCompletion && _iterator.return) {
+                                        _iterator.return();
+                                    }
+                                } finally {
+                                    if (_didIteratorError) {
+                                        throw _iteratorError;
+                                    }
+                                }
+                            }
+                        }
+                    };
+                    document.head.appendChild(script);
+                }
+
+                VimeoPlayer.consumers.push(resolve);
+            });
+        }
+    }, {
+        key: 'play',
+        value: function play(id) {
+            var _this2 = this;
+
+            this.initialize().then(function () {
+                if (_this2.player) {
+                    _this2.player.loadVideo(id);
+                    return 0;
+                }
+                _this2.player = new VimeoPlayer.api.Player(_this2.container, {
+                    id: id,
+                    height: _this2.container.clientHeight,
+                    width: _this2.container.clientWidth
+                });
+
+                _this2.player.setVolume(0);
+                _this2.player.play();
+            });
+        }
+    }]);
+    return VimeoPlayer;
+}(AbstractPlayer);
+
+VimeoPlayer.api = null;
+VimeoPlayer.consumers = [];
+
 // Core
-var YOUTUBE_API = 'https://www.youtube.com/iframe_api';
-var YOUTUBE_API_CONSUMERS = [];
+// Instruments
 var STYLES = {
 	FIGURE: {
 		width: '100vw',
@@ -995,39 +1217,6 @@ var STYLES = {
 	}
 };
 
-function initYoutubeApi() {
-	var script = document.createElement('script');
-	script.setAttribute('src', YOUTUBE_API);
-	document.head.appendChild(script);
-
-	window.onYouTubeIframeAPIReady = function () {
-		var _iteratorNormalCompletion = true;
-		var _didIteratorError = false;
-		var _iteratorError = undefined;
-
-		try {
-			for (var _iterator = YOUTUBE_API_CONSUMERS[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-				var consumer = _step.value;
-
-				consumer(window.YT);
-			}
-		} catch (err) {
-			_didIteratorError = true;
-			_iteratorError = err;
-		} finally {
-			try {
-				if (!_iteratorNormalCompletion && _iterator.return) {
-					_iterator.return();
-				}
-			} finally {
-				if (_didIteratorError) {
-					throw _iteratorError;
-				}
-			}
-		}
-	};
-}
-
 var Video = function (_Component) {
 	inherits(Video, _Component);
 
@@ -1036,87 +1225,71 @@ var Video = function (_Component) {
 
 		var _this = possibleConstructorReturn(this, (Video.__proto__ || Object.getPrototypeOf(Video)).call(this, props));
 
-		var ready = Boolean(window.YT);
-
-		_this.state = { ready: ready, api: window.YT };
 		_this.node = createRef();
-		_this.player = null;
-
-		if (!ready) {
-			YOUTUBE_API_CONSUMERS.length === 0 && initYoutubeApi();
-			YOUTUBE_API_CONSUMERS.push(function (YT) {
-				return _this.setState({
-					ready: true,
-					api: YT
-				});
-			});
-		}
-
-		_this.createPlayer = _this.createPlayer.bind(_this);
-		_this.changeVideo = _this.changeVideo.bind(_this);
 		return _this;
 	}
 
 	createClass(Video, [{
+		key: 'componentDidMount',
+		value: function componentDidMount() {
+			if (this.node.current) {
+				var _props = this.props,
+				    id = _props.id,
+				    provider = _props.provider;
+
+				switch (provider) {
+					case 'youtube':
+						this.player = new YoutubePlayer(this.node.current);
+						break;
+					case 'vimeo':
+						this.player = new VimeoPlayer(this.node.current);
+						break;
+					default:
+						this.player = new AbstractPlayer(this.node.current);
+				}
+
+				this.player.play(id);
+			}
+		}
+	}, {
 		key: 'componentDidUpdate',
 		value: function componentDidUpdate(_ref) {
-			var prevId = _ref.id;
-			var changeVideo = this.changeVideo,
-			    createPlayer = this.createPlayer;
-			var ready = this.state.ready;
-			var id = this.props.id;
+			var prevId = _ref.id,
+			    prevProvider = _ref.provider;
+			var _props2 = this.props,
+			    id = _props2.id,
+			    provider = _props2.provider;
 
-			var initialized = !!this.player;
 			var videoChanged = prevId !== id;
+			var providerChanged = prevProvider !== provider;
 
-			ready && !initialized && createPlayer();
-			ready && initialized && videoChanged && changeVideo(id);
+			if (providerChanged) {
+				this.player.destroy();
+
+				switch (provider) {
+					case 'youtube':
+						this.player = new YoutubePlayer(this.node.current);
+						break;
+					case 'vimeo':
+						this.player = new VimeoPlayer(this.node.current);
+						break;
+				}
+
+				this.player.play(id);
+			} else if (videoChanged) {
+				this.player.play(id);
+			}
 		}
 	}, {
 		key: 'componentWillUnmount',
 		value: function componentWillUnmount() {
-			this.player && this.player.destroy();
-		}
-	}, {
-		key: 'createPlayer',
-		value: function createPlayer() {
-			var _this2 = this;
-
-			var id = this.props.id;
-
-
-			this.player = new window.YT.Player(this.node.current, {
-				videoId: id,
-				playerVars: {
-					controls: 1,
-					modestbranding: 1,
-					showinfo: 0,
-					disablekb: 1,
-					rel: 0
-				},
-				events: {
-					onReady: function onReady() {
-						_this2.player.playVideo();
-						_this2.player.mute();
-					}
-				}
-			});
-		}
-	}, {
-		key: 'changeVideo',
-		value: function changeVideo(videoId) {
-			'loadVideoById' in this.player && this.player.loadVideoById(videoId);
+			this.player.destroy();
 		}
 	}, {
 		key: 'render',
 		value: function render$$1() {
-			var ready = this.state.ready;
 			var className = this.props.className;
 
-
-			if (!ready) {
-				return null;
-			}
 
 			return React.createElement(
 				'figure',
@@ -1435,7 +1608,7 @@ var Lightbox = function (_Component) {
 
 			switch (object.type) {
 				case 'video':
-					return React.createElement(Video, { id: object.id, className: css(this.classes.figure) });
+					return React.createElement(Video, { id: object.id, provider: object.provider, className: css(this.classes.figure) });
 				default:
 					return React.createElement(
 						'figure',
