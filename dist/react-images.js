@@ -1020,6 +1020,8 @@ var YoutubePlayer = function (_AbstractPlayer) {
         if (!YoutubePlayer.api && typeof window.YT !== 'undefined') {
             YoutubePlayer.api = window.YT;
         }
+
+        _this.ready = false;
         return _this;
     }
 
@@ -1069,18 +1071,39 @@ var YoutubePlayer = function (_AbstractPlayer) {
             });
         }
     }, {
-        key: 'play',
-        value: function play(id) {
+        key: 'waitForLoading',
+        value: function waitForLoading() {
             var _this2 = this;
 
+            return new Promise(function (resolve, reject) {
+                var hunter = setInterval(function () {
+                    if (_this2.ready) {
+                        clearInterval(hunter);
+                        resolve();
+                    }
+                });
+
+                setTimeout(function () {
+                    clearInterval(hunter);
+                    reject();
+                }, 1000);
+            });
+        }
+    }, {
+        key: 'play',
+        value: function play(id) {
+            var _this3 = this;
+
             this.initialize().then(function () {
-                if (_this2.player) {
-                    _this2.player.loadVideoById(id);
+                if (_this3.player) {
+                    _this3.waitForLoading().then(function () {
+                        return _this3.player.loadVideoById(id);
+                    });
 
                     return 0;
                 }
 
-                _this2.player = new YoutubePlayer.api.Player(_this2.container, {
+                _this3.player = new YoutubePlayer.api.Player(_this3.container, {
                     videoId: id,
                     playerVars: {
                         controls: 1,
@@ -1091,8 +1114,9 @@ var YoutubePlayer = function (_AbstractPlayer) {
                     },
                     events: {
                         onReady: function onReady() {
-                            _this2.player.playVideo();
-                            _this2.player.mute();
+                            _this3.ready = true;
+                            _this3.player.playVideo();
+                            _this3.player.mute();
                         }
                     }
                 });
@@ -1103,6 +1127,7 @@ var YoutubePlayer = function (_AbstractPlayer) {
         value: function destroy() {
             if (this.player) {
                 this.player.destroy();
+                this.ready = false;
             }
         }
     }]);

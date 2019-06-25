@@ -7,6 +7,8 @@ export class YoutubePlayer extends AbstractPlayer {
         if (!YoutubePlayer.api && typeof window.YT !== 'undefined') {
             YoutubePlayer.api = window.YT;
         }
+
+        this.ready = false;
     }
 
     initialize() {
@@ -32,11 +34,28 @@ export class YoutubePlayer extends AbstractPlayer {
         });
     }
 
+    waitForLoading() {
+        return new Promise((resolve, reject) => {
+            const hunter = setInterval(() => {
+                if (this.ready) {
+                    clearInterval(hunter);
+                    resolve();
+                }
+            });
+
+            setTimeout(() => {
+                clearInterval(hunter);
+                reject();
+            }, 1000);
+        });
+    }
+
     play(id) {
         this.initialize()
             .then(() => {
                 if (this.player) {
-                    this.player.loadVideoById(id);
+                    this.waitForLoading()
+                        .then(() => this.player.loadVideoById(id));
 
                     return 0;
                 }
@@ -52,6 +71,7 @@ export class YoutubePlayer extends AbstractPlayer {
                     },
                     events: {
                         onReady: () => {
+                            this.ready = true;
                             this.player.playVideo();
                             this.player.mute();
                         },
@@ -63,6 +83,7 @@ export class YoutubePlayer extends AbstractPlayer {
     destroy() {
         if (this.player) {
             this.player.destroy();
+            this.ready = false;
         }
     }
 }
