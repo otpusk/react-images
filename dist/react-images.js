@@ -1590,11 +1590,11 @@ var Lightbox = function (_Component) {
 
 			return React__default.createElement(
 				Container,
-				{
+				_extends({
 					key: 'open',
 					onClick: backdropClosesModal && this.closeBackdrop,
 					onTouchEnd: backdropClosesModal && this.closeBackdrop
-				},
+				}, this.props.container),
 				React__default.createElement(
 					'div',
 					null,
@@ -1776,7 +1776,8 @@ Lightbox.propTypes = {
 	spinnerSize: PropTypes.number,
 	theme: PropTypes.object,
 	thumbnailOffset: PropTypes.number,
-	width: PropTypes.number
+	width: PropTypes.number,
+	container: PropTypes.object
 };
 Lightbox.defaultProps = {
 	closeButtonTitle: 'Close (Esc)',
@@ -1795,7 +1796,8 @@ Lightbox.defaultProps = {
 	spinnerSize: 100,
 	theme: {},
 	thumbnailOffset: 2,
-	width: 1024
+	width: 1024,
+	container: {}
 };
 Lightbox.childContextTypes = {
 	theme: PropTypes.object.isRequired
