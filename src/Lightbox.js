@@ -229,6 +229,7 @@ class Lightbox extends Component {
 				key="open"
 				onClick={backdropClosesModal && this.closeBackdrop}
 				onTouchEnd={backdropClosesModal && this.closeBackdrop}
+				{ ...this.props.container }
 			>
 				<div>
 					<div className={css(this.classes.content)} style={{ marginBottom: offsetThumbnails, maxWidth: width }}>
@@ -403,6 +404,7 @@ Lightbox.propTypes = {
 	theme: PropTypes.object,
 	thumbnailOffset: PropTypes.number,
 	width: PropTypes.number,
+	container: PropTypes.object
 };
 Lightbox.defaultProps = {
 	closeButtonTitle: 'Close (Esc)',
@@ -422,6 +424,7 @@ Lightbox.defaultProps = {
 	theme: {},
 	thumbnailOffset: 2,
 	width: 1024,
+	container: {}
 };
 Lightbox.childContextTypes = {
 	theme: PropTypes.object.isRequired,
