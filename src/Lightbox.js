@@ -229,9 +229,8 @@ class Lightbox extends Component {
 				key="open"
 				onClick={backdropClosesModal && this.closeBackdrop}
 				onTouchEnd={backdropClosesModal && this.closeBackdrop}
-				{ ...this.props.container }
 			>
-				<div>
+				<div {...this.props.container.handlers}>
 					<div className={css(this.classes.content)} style={{ marginBottom: offsetThumbnails, maxWidth: width }}>
 						{imageLoaded && this.renderHeader()}
 						{this.renderImages()}
@@ -373,6 +372,7 @@ class Lightbox extends Component {
 Lightbox.propTypes = {
 	backdropClosesModal: PropTypes.bool,
 	closeButtonTitle: PropTypes.string,
+	container: PropTypes.object,
 	currentImage: PropTypes.number,
 	customControls: PropTypes.arrayOf(PropTypes.node),
 	enableKeyboardInput: PropTypes.bool,
@@ -404,7 +404,6 @@ Lightbox.propTypes = {
 	theme: PropTypes.object,
 	thumbnailOffset: PropTypes.number,
 	width: PropTypes.number,
-	container: PropTypes.object
 };
 Lightbox.defaultProps = {
 	closeButtonTitle: 'Close (Esc)',
@@ -424,7 +423,7 @@ Lightbox.defaultProps = {
 	theme: {},
 	thumbnailOffset: 2,
 	width: 1024,
-	container: {}
+	container: {},
 };
 Lightbox.childContextTypes = {
 	theme: PropTypes.object.isRequired,

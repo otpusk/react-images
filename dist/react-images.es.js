@@ -1588,14 +1588,14 @@ var Lightbox = function (_Component) {
 
 			return React.createElement(
 				Container,
-				_extends({
+				{
 					key: 'open',
 					onClick: backdropClosesModal && this.closeBackdrop,
 					onTouchEnd: backdropClosesModal && this.closeBackdrop
-				}, this.props.container),
+				},
 				React.createElement(
 					'div',
-					null,
+					this.props.container.handlers,
 					React.createElement(
 						'div',
 						{ className: css(this.classes.content), style: { marginBottom: offsetThumbnails, maxWidth: width } },
@@ -1746,6 +1746,7 @@ var Lightbox = function (_Component) {
 Lightbox.propTypes = {
 	backdropClosesModal: PropTypes.bool,
 	closeButtonTitle: PropTypes.string,
+	container: PropTypes.object,
 	currentImage: PropTypes.number,
 	customControls: PropTypes.arrayOf(PropTypes.node),
 	enableKeyboardInput: PropTypes.bool,
@@ -1774,8 +1775,7 @@ Lightbox.propTypes = {
 	spinnerSize: PropTypes.number,
 	theme: PropTypes.object,
 	thumbnailOffset: PropTypes.number,
-	width: PropTypes.number,
-	container: PropTypes.object
+	width: PropTypes.number
 };
 Lightbox.defaultProps = {
 	closeButtonTitle: 'Close (Esc)',
