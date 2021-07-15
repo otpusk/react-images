@@ -63,6 +63,7 @@ export class YoutubePlayer extends AbstractPlayer {
                 this.player = new YoutubePlayer.api.Player(this.container, {
                     videoId: id,
                     playerVars: {
+                        autoplay: 1,
                         controls: 1,
                         modestbranding: 1,
                         showinfo: 0,

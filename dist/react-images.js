@@ -1106,6 +1106,7 @@ var YoutubePlayer = function (_AbstractPlayer) {
                 _this3.player = new YoutubePlayer.api.Player(_this3.container, {
                     videoId: id,
                     playerVars: {
+                        autoplay: 1,
                         controls: 1,
                         modestbranding: 1,
                         showinfo: 0,
